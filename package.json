@@ -1,0 +1,21 @@
+{
+  "name": "cours-ci-cd",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "build": "mkdir -p dist && cp -r src/* dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/izigower/cours-ci-cd.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/izigower/cours-ci-cd/issues"
+  },
+  "homepage": "https://github.com/izigower/cours-ci-cd#readme"
+}
