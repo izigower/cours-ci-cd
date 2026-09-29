@@ -1,0 +1,68 @@
+name: Build, test, deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:                # village ou royaume ?
+        description: Cible du déploiement
+        type: choice
+        options: [staging, production]
+        default: staging
+
+permissions:
+  contents: read                  # lire le grimoire, jamais écrire
+
+jobs:
+  build:                          # un seul apprenti prépare la potion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v7      # au coffre
+        with:
+          name: application
+          path: dist/
+
+  test:                           # quatre goûteurs, quatre climats
+    needs: build
+    strategy:
+      fail-fast: false            # un malade n'arrête pas les autres
+      max-parallel: 2             # deux tours libres à la fois
+      matrix:
+        node: [20, 22]
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8    # sortir la fiole du coffre
+        with:
+          name: application
+          path: dist/
+      - run: npm test
+
+  deploy:                         # le messager
+    needs: test                   # attend TOUS les goûteurs
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: application
+          path: dist/
+      - run: echo "Livraison vers ${{ vars.API_URL }}"
+      - name: Résumé
+        run: |
+          echo "## Déploiement" >> $GITHUB_STEP_SUMMARY
+          echo "- Cible : ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- URL : ${{ vars.API_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit : ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
