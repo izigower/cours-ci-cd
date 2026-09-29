@@ -1,0 +1,28 @@
+name: Hello world
+
+#evenement declenche
+on:
+  push:
+
+#travaille a effectue
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm # Disable automatic npm caching if not required
+      - run: npm ci
+
+      - run: npm test
+
+      - name: Résumé
+        if: always() # s'exécute même si une étape a échoué
+        run: |
+          echo "## Résultat du job" >> $GITHUB_STEP_SUMMARY
+          echo "- Statut : ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Ref : ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit : ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

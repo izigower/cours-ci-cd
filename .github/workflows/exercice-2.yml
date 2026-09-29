@@ -1,0 +1,41 @@
+name: Build
+
+on:
+  workflow_dispatch: # le bouton pour appeler le berger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7 # chercher le lait
+      - uses: actions/setup-node@v7 # installer le chaudron
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci # les ingrédients exacts
+      - run: npm run build # fabriquer le fromage
+
+      - name: Vérifier dist/ # le moule n'est pas vide ?
+        run: |
+          if [ ! -d dist ] || [ -z "$(ls -A dist)" ]; then
+            echo "::error::Le build n'a rien produit dans dist/"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v7 # descendre la meule à la cave
+        with:
+          name: build
+          path: dist/
+
+      - name: Résumé # l'étiquette
+        if: always()
+        run: |
+          echo "## Build" >> $GITHUB_STEP_SUMMARY
+          echo "- Statut : ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Lancé par : ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branche : ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit : ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Node : $(node --version)" >> $GITHUB_STEP_SUMMARY
+          echo "- Taille de dist/ : $(du -sh dist 2>/dev/null | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "- Fichiers : $(find dist -type f 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
